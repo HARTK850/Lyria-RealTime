@@ -3,308 +3,267 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>יצירת מוזיקה עם Lyria RealTime</title>
+    <title>Lyria RealTime Music</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            color: #333;
-            margin: 0;
-            padding: 20px;
-            direction: rtl;
-            text-align: right;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            text-align: center;
-        }
-        label {
-            display: block;
-            margin-top: 10px;
-        }
-        input, textarea, select {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            box-sizing: border-box;
-        }
-        button {
-            margin-top: 10px;
-            padding: 10px 15px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        #audioPlayer {
-            width: 100%;
-            margin-top: 20px;
-        }
-        #status {
-            margin-top: 10px;
-            font-style: italic;
-        }
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-        .hidden {
-            display: none;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700&display=swap');
+        body { font-family: 'Assistant', sans-serif; background-color: #020617; color: #f8fafc; }
+        .glass { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .bar { width: 3px; background: #38bdf8; border-radius: 2px; transition: height 0.05s ease; }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>יצירת מוזיקה באמצעות Lyria RealTime</h1>
-        <p>הזן את מפתח ה-API של Gemini, כתוב הנחיה, והתחל ליצור מוזיקה!</p>
-        
-        <label for="apiKey">מפתח API:</label>
-        <input type="text" id="apiKey" placeholder="הזן כאן את מפתח ה-API">
-        
-        <label for="prompt">הנחיה ראשונית (prompt):</label>
-        <textarea id="prompt" rows="4" placeholder="לדוגמה: Minimal techno with deep bass"></textarea>
-        
-        <label for="bpm">BPM (קצב):</label>
-        <input type="number" id="bpm" min="60" max="200" value="90">
-        
-        <label for="temperature">Temperature (יצירתיות):</label>
-        <input type="number" id="temperature" min="0" max="3" step="0.1" value="1.0">
-        
-        <label for="density">Density (צפיפות):</label>
-        <input type="number" id="density" min="0" max="1" step="0.1" value="0.5">
-        
-        <label for="brightness">Brightness (בהירות):</label>
-        <input type="number" id="brightness" min="0" max="1" step="0.1" value="0.5">
-        
-        <label for="scale">סולם מוזיקלי:</label>
-        <select id="scale">
-            <option value="SCALE_UNSPECIFIED">ברירת מחדל</option>
-            <option value="C_MAJOR_A_MINOR">דו מז'ור / לה מינור</option>
-            <option value="D_FLAT_MAJOR_B_FLAT_MINOR">רה במול מז'ור / סי במול מינור</option>
-            <option value="D_MAJOR_B_MINOR">רה מז'ור / סי מינור</option>
-            <option value="E_FLAT_MAJOR_C_MINOR">מי במול מז'ור / דו מינור</option>
-            <option value="E_MAJOR_D_FLAT_MINOR">מי מז'ור / רה במול מינור</option>
-            <option value="F_MAJOR_D_MINOR">פה מז'ור / רה מינור</option>
-            <option value="G_FLAT_MAJOR_E_FLAT_MINOR">סול במול מז'ור / מי במול מינור</option>
-            <option value="G_MAJOR_E_MINOR">סול מז'ור / מי מינור</option>
-            <option value="A_FLAT_MAJOR_F_MINOR">לה במול מז'ור / פה מינור</option>
-            <option value="A_MAJOR_G_FLAT_MINOR">לה מז'ור / סול במול מינור</option>
-            <option value="B_FLAT_MAJOR_G_MINOR">סי במול מז'ור / סול מינור</option>
-            <option value="B_MAJOR_A_FLAT_MINOR">סי מז'ור / לה במול מינור</option>
-        </select>
-        
-        <label for="muteBass">השתק בס:</label>
-        <input type="checkbox" id="muteBass">
-        
-        <label for="muteDrums">השתק תופים:</label>
-        <input type="checkbox" id="muteDrums">
-        
-        <label for="onlyBassDrums">רק בס ותופים:</label>
-        <input type="checkbox" id="onlyBassDrums">
-        
-        <label for="mode">מצב יצירה:</label>
-        <select id="mode">
-            <option value="QUALITY">איכות</option>
-            <option value="DIVERSITY">מגוון</option>
-            <option value="VOCALIZATION">ווקאליזציה</option>
-        </select>
-        
-        <button id="startButton">התחל יצירה</button>
-        
-        <div class="controls hidden" id="liveControls">
-            <label for="newPrompt">הנחיה חדשה (בזמן אמת):</label>
-            <textarea id="newPrompt" rows="2" placeholder="שנה את המוזיקה..."></textarea>
-            <label for="newWeight">משקל להנחיה החדשה:</label>
-            <input type="number" id="newWeight" min="0" step="0.1" value="1.0">
-            <button id="updatePrompt">עדכן הנחיה</button>
-            
-            <button id="pauseButton">השהה</button>
-            <button id="resumeButton">המשך</button>
-            <button id="stopButton">עצור</button>
-            <button id="resetButton">אפס</button>
-            <button id="downloadButton">הורד אודיו</button>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="w-full max-w-2xl space-y-6">
+        <header class="text-center">
+            <h1 class="text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 mb-2">Lyria Live</h1>
+            <p class="text-slate-400">הלחנת מוזיקה אינטראקטיבית בזמן אמת</p>
+        </header>
+
+        <!-- API Key & Config -->
+        <div class="glass p-6 rounded-3xl shadow-2xl space-y-4">
+            <div>
+                <label class="block text-sm font-semibold mb-1 mr-1">מפתח API של Google AI</label>
+                <input type="password" id="apiKey" placeholder="הכנס מפתח כאן..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1">
+                    <label class="text-xs text-slate-500 mr-1">קצב (BPM)</label>
+                    <input type="number" id="bpm" value="120" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-center">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs text-slate-500 mr-1">סולם</label>
+                    <select id="scale" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 outline-none">
+                        <option value="SCALE_UNSPECIFIED">אוטומטי</option>
+                        <option value="C_MAJOR_A_MINOR">C Major / A Minor</option>
+                        <option value="G_MAJOR_E_MINOR">G Major / E Minor</option>
+                    </select>
+                </div>
+            </div>
         </div>
-        
-        <audio id="audioPlayer" controls></audio>
-        <div id="status"></div>
+
+        <!-- Prompt Area -->
+        <div class="glass p-6 rounded-3xl shadow-2xl space-y-4">
+            <textarea id="prompt" rows="3" placeholder="תאר את המוזיקה (למשל: Epic cinematic orchestra with fast drums...)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
+            
+            <div class="flex gap-3">
+                <button id="toggleBtn" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 py-4 rounded-xl font-bold text-lg shadow-lg shadow-blue-900/20 transition-all">
+                    הפעל מוזיקה
+                </button>
+                <button id="downloadBtn" class="hidden bg-slate-800 hover:bg-slate-700 px-6 py-4 rounded-xl font-bold transition-all">
+                    ⬇
+                </button>
+            </div>
+        </div>
+
+        <!-- Visualizer -->
+        <div id="playerUI" class="hidden glass p-6 rounded-3xl animate-in fade-in duration-500">
+            <div id="visualizer" class="h-24 flex items-end justify-center gap-1 mb-4">
+                <!-- Bars via JS -->
+            </div>
+            <div class="flex justify-between items-center text-xs text-slate-500">
+                <span id="status">מזרים אודיו...</span>
+                <span id="timer">00:00</span>
+            </div>
+        </div>
     </div>
 
-    <script type="module">
-        import { GoogleGenAI } from "@google/generative-ai"; // הנחה שהספריה זמינה דרך CDN או מותקנת
+    <script>
+        let socket = null;
+        let audioCtx = null;
+        let nextPlayTime = 0;
+        let isPlaying = false;
+        let audioChunks = [];
 
-        let client;
-        let session;
-        let audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        let audioBuffers = []; // לאיסוף חלקי אודיו להורדה
-        let sourceNode;
+        const toggleBtn = document.getElementById('toggleBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const visualizer = document.getElementById('visualizer');
 
-        const apiKeyInput = document.getElementById('apiKey');
-        const promptInput = document.getElementById('prompt');
-        const bpmInput = document.getElementById('bpm');
-        const temperatureInput = document.getElementById('temperature');
-        const densityInput = document.getElementById('density');
-        const brightnessInput = document.getElementById('brightness');
-        const scaleSelect = document.getElementById('scale');
-        const muteBassCheckbox = document.getElementById('muteBass');
-        const muteDrumsCheckbox = document.getElementById('muteDrums');
-        const onlyBassDrumsCheckbox = document.getElementById('onlyBassDrums');
-        const modeSelect = document.getElementById('mode');
-        const startButton = document.getElementById('startButton');
-        const updatePromptButton = document.getElementById('updatePrompt');
-        const newPromptInput = document.getElementById('newPrompt');
-        const newWeightInput = document.getElementById('newWeight');
-        const pauseButton = document.getElementById('pauseButton');
-        const resumeButton = document.getElementById('resumeButton');
-        const stopButton = document.getElementById('stopButton');
-        const resetButton = document.getElementById('resetButton');
-        const downloadButton = document.getElementById('downloadButton');
-        const statusDiv = document.getElementById('status');
-        const liveControls = document.getElementById('liveControls');
-        const audioPlayer = document.getElementById('audioPlayer');
+        // Create visualizer bars
+        for(let i=0; i<40; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'bar h-2';
+            visualizer.appendChild(bar);
+        }
 
-        startButton.addEventListener('click', async () => {
-            const apiKey = apiKeyInput.value.trim();
-            if (!apiKey) {
-                statusDiv.textContent = 'נא להזין מפתח API תקף.';
-                return;
+        async function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000 });
             }
-            const prompt = promptInput.value.trim();
-            if (!prompt) {
-                statusDiv.textContent = 'נא להזין הנחיה.';
-                return;
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
+        }
+
+        function playAudioChunk(base64Data) {
+            const binary = atob(base64Data);
+            const bytes = new Int16Array(binary.length / 2);
+            for (let i = 0; i < binary.length; i += 2) {
+                bytes[i/2] = (binary.charCodeAt(i+1) << 8) | binary.charCodeAt(i);
+            }
+            
+            audioChunks.push(new Int16Array(bytes)); // Save for download
+
+            const float32 = new Float32Array(bytes.length);
+            for (let i = 0; i < bytes.length; i++) float32[i] = bytes[i] / 32768.0;
+
+            const buffer = audioCtx.createBuffer(2, float32.length / 2, 48000);
+            const left = buffer.getChannelData(0);
+            const right = buffer.getChannelData(1);
+            
+            for (let i = 0; i < float32.length / 2; i++) {
+                left[i] = float32[i*2];
+                right[i] = float32[i*2+1];
             }
 
-            statusDiv.textContent = 'מתחבר...';
-            client = new GoogleGenAI({ apiKey, apiVersion: "v1alpha" });
+            const source = audioCtx.createBufferSource();
+            source.buffer = buffer;
+            source.connect(audioCtx.destination);
+            
+            const now = audioCtx.currentTime;
+            if (nextPlayTime < now) nextPlayTime = now + 0.1;
+            source.start(nextPlayTime);
+            nextPlayTime += buffer.duration;
 
-            try {
-                session = await client.live.music.connect({
-                    model: "models/lyria-realtime-exp",
-                    callbacks: {
-                        onmessage: (message) => {
-                            if (message.serverContent?.audioChunks) {
-                                for (const chunk of message.serverContent.audioChunks) {
-                                    const audioData = Uint8Array.from(atob(chunk.data), c => c.charCodeAt(0));
-                                    audioBuffers.push(audioData); // שמירה להורדה
-                                    playAudioChunk(audioData);
-                                }
-                            }
-                        },
-                        onerror: (error) => {
-                            console.error("שגיאה:", error);
-                            statusDiv.textContent = 'שגיאה: ' + error.message;
-                        },
-                        onclose: () => {
-                            statusDiv.textContent = 'זרם נסגר.';
-                        }
-                    }
-                });
-
-                await session.setWeightedPrompts({
-                    weightedPrompts: [{ text: prompt, weight: 1.0 }]
-                });
-
-                await session.setMusicGenerationConfig({
-                    musicGenerationConfig: {
-                        bpm: parseInt(bpmInput.value),
-                        temperature: parseFloat(temperatureInput.value),
-                        density: parseFloat(densityInput.value),
-                        brightness: parseFloat(brightnessInput.value),
-                        scale: scaleSelect.value,
-                        mute_bass: muteBassCheckbox.checked,
-                        mute_drums: muteDrumsCheckbox.checked,
-                        only_bass_and_drums: onlyBassDrumsCheckbox.checked,
-                        music_generation_mode: modeSelect.value,
-                        audioFormat: "pcm16",
-                        sampleRateHz: 44100
-                    }
-                });
-
-                await session.play();
-                statusDiv.textContent = 'מוזיקה מנגנת!';
-                liveControls.classList.remove('hidden');
-            } catch (error) {
-                console.error(error);
-                statusDiv.textContent = 'שגיאה בהתחברות: ' + error.message;
-            }
-        });
-
-        updatePromptButton.addEventListener('click', async () => {
-            const newPrompt = newPromptInput.value.trim();
-            if (!newPrompt || !session) return;
-            await session.setWeightedPrompts({
-                weightedPrompts: [{ text: newPrompt, weight: parseFloat(newWeightInput.value) }]
+            // Visualizer animation
+            Array.from(visualizer.children).forEach(bar => {
+                bar.style.height = Math.floor(Math.random() * 90 + 10) + '%';
             });
-            statusDiv.textContent = 'הנחיה עודכנה!';
-        });
+        }
 
-        pauseButton.addEventListener('click', async () => {
-            if (session) await session.pause();
-            statusDiv.textContent = 'מושהה.';
-        });
+        function startStream() {
+            const key = document.getElementById('apiKey').value;
+            if(!key) { alert("נא להזין מפתח API"); return; }
 
-        resumeButton.addEventListener('click', async () => {
-            if (session) await session.play();
-            statusDiv.textContent = 'ממשיך.';
-        });
+            initAudio();
+            audioChunks = [];
+            nextPlayTime = 0;
 
-        stopButton.addEventListener('click', async () => {
-            if (session) await session.stop();
-            statusDiv.textContent = 'עצר.';
-        });
+            // שימוש בכתובת ה-WebSocket עם https (הדפדפן יודע לבצע Upgrade ל-WSS)
+            // לפי התיעוד של גוגל למודל Lyria RealTime
+            const url = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.MusicService/StreamMusic?key=${key}`;
+            
+            try {
+                socket = new WebSocket(url);
 
-        resetButton.addEventListener('click', async () => {
-            if (session) await session.reset_context();
-            audioBuffers = [];
-            statusDiv.textContent = 'אופס.';
-        });
+                socket.onopen = () => {
+                    isPlaying = true;
+                    toggleBtn.innerText = "עצור מוזיקה";
+                    toggleBtn.classList.replace('from-blue-600', 'from-red-600');
+                    toggleBtn.classList.replace('to-indigo-600', 'to-red-700');
+                    document.getElementById('playerUI').classList.remove('hidden');
+                    downloadBtn.classList.add('hidden');
 
-        downloadButton.addEventListener('click', () => {
-            if (audioBuffers.length === 0) {
-                statusDiv.textContent = 'אין אודיו להורדה.';
-                return;
+                    // Setup message
+                    socket.send(JSON.stringify({
+                        setup: {
+                            model: "models/lyria-realtime-exp",
+                            music_generation_config: {
+                                bpm: parseInt(document.getElementById('bpm').value),
+                                scale: document.getElementById('scale').value,
+                                audio_format: "pcm16",
+                                sample_rate_hz: 48000
+                            }
+                        }
+                    }));
+
+                    // Send initial prompt
+                    updatePrompt();
+
+                    // Start Playback
+                    socket.send(JSON.stringify({ playback_control: { command: "PLAY" } }));
+                };
+
+                socket.onmessage = async (event) => {
+                    let data;
+                    if (event.data instanceof Blob) {
+                        data = JSON.parse(await event.data.text());
+                    } else {
+                        data = JSON.parse(event.data);
+                    }
+
+                    if (data.serverContent?.audioChunks) {
+                        data.serverContent.audioChunks.forEach(chunk => playAudioChunk(chunk.data));
+                    }
+                };
+
+                socket.onclose = stopStream;
+                socket.onerror = (e) => {
+                    console.error(e);
+                    alert("נכשל בהתחברות. ודא שמפתח ה-API תקין ושירות Lyria זמין עבורך.");
+                    stopStream();
+                };
+
+            } catch (err) {
+                alert("שגיאה ביצירת החיבור: " + err.message);
             }
-            const combinedBuffer = concatenateBuffers(audioBuffers);
-            const blob = new Blob([combinedBuffer], { type: 'audio/wav' });
+        }
+
+        function updatePrompt() {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    weighted_prompts: [{
+                        text: document.getElementById('prompt').value || "Lo-fi background beat",
+                        weight: 1.0
+                    }]
+                }));
+            }
+        }
+
+        function stopStream() {
+            if (socket) socket.close();
+            socket = null;
+            isPlaying = false;
+            toggleBtn.innerText = "הפעל מוזיקה";
+            toggleBtn.classList.replace('from-red-600', 'from-blue-600');
+            toggleBtn.classList.replace('to-red-700', 'to-indigo-600');
+            if(audioChunks.length > 0) downloadBtn.classList.remove('hidden');
+        }
+
+        function downloadWav() {
+            const totalLen = audioChunks.reduce((acc, curr) => acc + curr.length, 0);
+            const buffer = new ArrayBuffer(44 + totalLen * 2);
+            const view = new DataView(buffer);
+
+            const writeString = (pos, str) => {
+                for (let i = 0; i < str.length; i++) view.setUint8(pos + i, str.charCodeAt(i));
+            };
+
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + totalLen * 2, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true); // PCM
+            view.setUint16(22, 2, true); // Stereo
+            view.setUint32(24, 48000, true);
+            view.setUint32(28, 48000 * 4, true);
+            view.setUint16(32, 4, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, totalLen * 2, true);
+
+            let offset = 44;
+            audioChunks.forEach(chunk => {
+                for (let i = 0; i < chunk.length; i++) {
+                    view.setInt16(offset, chunk[i], true);
+                    offset += 2;
+                }
+            });
+
+            const blob = new Blob([buffer], { type: 'audio/wav' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'music.wav';
+            a.download = 'lyria-composition.wav';
             a.click();
-            URL.revokeObjectURL(url);
-        });
-
-        function playAudioChunk(data) {
-            audioContext.decodeAudioData(data.buffer, (buffer) => {
-                sourceNode = audioContext.createBufferSource();
-                sourceNode.buffer = buffer;
-                sourceNode.connect(audioContext.destination);
-                sourceNode.start();
-            }, (error) => console.error('שגיאה בפענוח אודיו:', error));
         }
 
-        function concatenateBuffers(buffers) {
-            const totalLength = buffers.reduce((acc, val) => acc + val.length, 0);
-            const result = new Uint8Array(totalLength);
-            let offset = 0;
-            for (const buffer of buffers) {
-                result.set(buffer, offset);
-                offset += buffer.length;
-            }
-            return result;
-        }
+        toggleBtn.onclick = () => isPlaying ? stopStream() : startStream();
+        downloadBtn.onclick = downloadWav;
+        
+        // Update prompt when user finishes typing
+        document.getElementById('prompt').addEventListener('blur', updatePrompt);
+
     </script>
 </body>
 </html>
