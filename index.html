@@ -154,7 +154,7 @@
             initAudio();
 
             // תיקון ה-URL לפי הפרוטוקול
-            const url = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.MusicService/StreamMusic?key=${key}`;
+            const url = `https://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.MusicService/StreamMusic?key=${key}`;
             
             ws = new WebSocket(url);
 
