@@ -3,375 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>יוצר המוזיקה של Lyria</title>
+    <title>Lyria RealTime Music Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700&display=swap');
         body { font-family: 'Assistant', sans-serif; background-color: #0f172a; color: white; }
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
         .gradient-text { background: linear-gradient(90deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .waveform-bar { transition: height 0.1s ease; }
+        .waveform-bar { transition: height 0.1s ease; width: 4px; border-radius: 2px; }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8">
 
     <div class="max-w-4xl mx-auto space-y-6">
-        <!-- Header -->
         <header class="text-center space-y-2">
-            <h1 class="text-4xl font-bold gradient-text">Lyria RealTime Music</h1>
-            <p class="text-gray-400">יצירת מוזיקה חכמה בזמן אמת באמצעות Gemini API</p>
+            <h1 class="text-4xl font-bold gradient-text">Lyria RealTime</h1>
+            <p class="text-gray-400">יצירת מוזיקה בשידור חי באמצעות Gemini API</p>
         </header>
 
-        <!-- Settings Section -->
         <div class="glass rounded-2xl p-6 shadow-xl space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="space-y-2">
-                    <label class="block text-sm font-medium">מפתח API של Gemini</label>
-                    <input type="password" id="apiKey" placeholder="הכנס מפתח כאן..." class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <label class="block text-sm font-medium">מפתח API</label>
+                    <input type="password" id="apiKey" placeholder="הכנס מפתח API..." class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
                 <div class="space-y-2">
-                    <label class="block text-sm font-medium">סולם מוזיקלי</label>
+                    <label class="block text-sm font-medium">סולם</label>
                     <select id="musicScale" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 outline-none">
-                        <option value="SCALE_UNSPECIFIED">ברירת מחדל (המודל יחליט)</option>
-                        <option value="C_MAJOR_A_MINOR">דו מז'ור / לה מינור</option>
-                        <option value="D_MAJOR_B_MINOR">רה מז'ור / סי מינור</option>
-                        <option value="G_MAJOR_E_MINOR">סול מז'ור / מי מינור</option>
-                        <option value="F_MAJOR_D_MINOR">פה מז'ור / רה מינור</option>
+                        <option value="SCALE_UNSPECIFIED">בחירה אוטומטית</option>
+                        <option value="C_MAJOR_A_MINOR">דו מז'ור (C Major)</option>
+                        <option value="G_MAJOR_E_MINOR">סול מז'ור (G Major)</option>
+                        <option value="F_MAJOR_D_MINOR">פה מז'ור (F Major)</option>
+                        <option value="D_MAJOR_B_MINOR">רה מז'ור (D Major)</option>
                     </select>
                 </div>
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
                 <div class="space-y-1">
-                    <label class="text-xs text-gray-400">BPM (קצב)</label>
+                    <label class="text-xs text-gray-400">קצב (BPM)</label>
                     <input type="number" id="bpm" value="120" min="60" max="200" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-center">
                 </div>
                 <div class="space-y-1">
-                    <label class="text-xs text-gray-400">צפיפות (0-1)</label>
+                    <label class="text-xs text-gray-400">צפיפות</label>
                     <input type="range" id="density" min="0" max="1" step="0.1" value="0.7" class="w-full">
                 </div>
                 <div class="space-y-1">
-                    <label class="text-xs text-gray-400">בהירות (0-1)</label>
+                    <label class="text-xs text-gray-400">בהירות</label>
                     <input type="range" id="brightness" min="0" max="1" step="0.1" value="0.5" class="w-full">
                 </div>
                 <div class="space-y-1">
-                    <label class="text-xs text-gray-400">הנחיה (Guidance)</label>
+                    <label class="text-xs text-gray-400">דיוק (Guidance)</label>
                     <input type="range" id="guidance" min="0" max="6" step="0.5" value="4.0" class="w-full">
                 </div>
             </div>
         </div>
 
-        <!-- Prompt Section -->
         <div class="glass rounded-2xl p-6 shadow-xl space-y-4">
-            <label class="block text-lg font-bold">מה הסגנון שננגן היום?</label>
-            <div class="flex gap-2">
-                <input type="text" id="promptInput" placeholder="לדוגמה: Lo-fi hip hop with smooth piano and rain sounds..." class="flex-1 bg-slate-800 border border-slate-700 rounded-lg p-3 outline-none focus:border-blue-500">
-                <button id="startBtn" class="bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded-lg font-bold transition-all flex items-center gap-2">
-                    <span id="btnIcon">▶</span>
-                    <span id="btnText">הפעל מוזיקה</span>
-                </button>
+            <label class="block text-lg font-bold">הנחיה מוזיקלית (Prompt)</label>
+            <div class="flex flex-col md:flex-row gap-2">
+                <input type="text" id="promptInput" placeholder="תאר את המוזיקה שאתה רוצה לשמוע..." class="flex-1 bg-slate-800 border border-slate-700 rounded-lg p-3 outline-none focus:border-blue-500">
+                <div class="flex gap-2">
+                    <button id="startBtn" class="bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded-lg font-bold transition-all flex-1 md:flex-none">
+                        הפעל
+                    </button>
+                    <button id="stopBtn" class="bg-red-600 hover:bg-red-500 px-6 py-3 rounded-lg font-bold transition-all hidden">
+                        עצור
+                    </button>
+                </div>
             </div>
-            
-            <div class="flex flex-wrap gap-2 pt-2">
-                <span class="text-xs text-gray-500">הצעות:</span>
-                <button onclick="setPrompt('Techno with deep bass')" class="text-xs bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded">Techno</button>
-                <button onclick="setPrompt('Classical violin solo')" class="text-xs bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded">Classical</button>
-                <button onclick="setPrompt('80s Synthpop')" class="text-xs bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded">80s Synth</button>
-                <button onclick="setPrompt('Cyberpunk industrial')" class="text-xs bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded">Cyberpunk</button>
-            </div>
+            <div id="loadingStatus" class="hidden text-sm text-blue-400 animate-pulse">מתחבר לשרת...</div>
         </div>
 
-        <!-- Visualizer & Controls -->
-        <div id="playerSection" class="hidden glass rounded-2xl p-6 shadow-xl space-y-6 animate-pulse-once">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                    <div id="statusIndicator" class="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <span class="text-sm font-medium">מחובר ומזרים אודיו...</span>
-                </div>
-                <div class="flex gap-2">
-                    <button id="downloadBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm flex items-center gap-2">
-                        <span>⬇</span> הורדה
-                    </button>
-                    <button id="stopBtn" class="bg-red-900/50 hover:bg-red-800 px-4 py-2 rounded-lg text-sm">עצור</button>
-                </div>
-            </div>
-
-            <!-- Waveform simulation -->
-            <div id="visualizer" class="h-32 flex items-end justify-center gap-1 overflow-hidden">
+        <div id="playerSection" class="hidden glass rounded-2xl p-6 shadow-xl space-y-6">
+            <div id="visualizer" class="h-24 flex items-end justify-center gap-1 overflow-hidden">
                 <!-- Bars created by JS -->
             </div>
-        </div>
-
-        <!-- Instructions Info -->
-        <div class="text-center text-xs text-gray-500 p-4">
-            הערה: Lyria RealTime הוא מודל ניסיוני. המוזיקה מיוצרת בזמן אמת ונשלחת כסטרימינג PCM.
-        </div>
-    </div>
-
-    <!-- Error Modal -->
-    <div id="errorModal" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-slate-900 border border-red-500/50 p-6 rounded-2xl max-w-sm w-full text-center space-y-4">
-            <div class="text-red-500 text-4xl">⚠️</div>
-            <h3 class="text-xl font-bold">אופס, קרתה שגיאה</h3>
-            <p id="errorMsg" class="text-gray-400 text-sm"></p>
-            <button onclick="closeError()" class="bg-slate-800 hover:bg-slate-700 px-6 py-2 rounded-lg w-full">סגור</button>
+            <div class="flex justify-between items-center">
+                <span class="text-xs text-green-400">שידור חי פעיל</span>
+                <button id="downloadBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm">הורד כשיר (WAV)</button>
+            </div>
         </div>
     </div>
 
     <script>
-        let socket = null;
-        let audioContext = null;
-        let nextStartTime = 0;
-        let isPlaying = false;
-        let recordedChunks = [];
-        let sampleRate = 48000;
+        let ws = null;
+        let audioCtx = null;
+        let nextTime = 0;
+        let pcmData = [];
 
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
-        const downloadBtn = document.getElementById('downloadBtn');
         const promptInput = document.getElementById('promptInput');
-        const playerSection = document.getElementById('playerSection');
         const visualizer = document.getElementById('visualizer');
 
-        // Create visualizer bars
-        for (let i = 0; i < 50; i++) {
-            const bar = document.createElement('div');
-            bar.className = 'waveform-bar w-2 bg-blue-500 rounded-t-full h-2';
-            visualizer.appendChild(bar);
-        }
-
-        function setPrompt(text) {
-            promptInput.value = text;
-        }
-
-        function closeError() {
-            document.getElementById('errorModal').classList.add('hidden');
-        }
-
-        function showError(msg) {
-            document.getElementById('errorMsg').innerText = msg;
-            document.getElementById('errorModal').classList.remove('hidden');
+        // Create bars
+        for(let i=0; i<60; i++) {
+            const b = document.createElement('div');
+            b.className = 'waveform-bar bg-blue-400 h-2';
+            visualizer.appendChild(b);
         }
 
         async function initAudio() {
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000 });
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000 });
             }
-            if (audioContext.state === 'suspended') {
-                await audioContext.resume();
-            }
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
         }
 
-        function playPCMChunk(base64Data) {
-            const binaryString = atob(base64Data);
-            const len = binaryString.length;
-            const bytes = new Int16Array(len / 2);
+        function playChunk(base64) {
+            const binary = atob(base64);
+            const bytes = new Int16Array(binary.length / 2);
+            for (let i = 0; i < binary.length; i += 2) {
+                bytes[i / 2] = (binary.charCodeAt(i + 1) << 8) | binary.charCodeAt(i);
+            }
             
-            for (let i = 0; i < len; i += 2) {
-                // PCM16 Little Endian
-                bytes[i / 2] = (binaryString.charCodeAt(i + 1) << 8) | binaryString.charCodeAt(i);
+            pcmData.push(new Int16Array(bytes));
+
+            const float32 = new Float32Array(bytes.length);
+            for (let i = 0; i < bytes.length; i++) float32[i] = bytes[i] / 32768;
+
+            const buffer = audioCtx.createBuffer(2, float32.length / 2, 48000);
+            const left = buffer.getChannelData(0);
+            const right = buffer.getChannelData(1);
+            
+            for (let i = 0; i < float32.length / 2; i++) {
+                left[i] = float32[i * 2];
+                right[i] = float32[i * 2 + 1];
             }
 
-            // Store for download
-            recordedChunks.push(new Int16Array(bytes));
+            const source = audioCtx.createBufferSource();
+            source.buffer = buffer;
+            source.connect(audioCtx.destination);
+            
+            const now = audioCtx.currentTime;
+            if (nextTime < now) nextTime = now + 0.1;
+            source.start(nextTime);
+            nextTime += buffer.duration;
 
-            // Convert to Float32 for Web Audio
-            const floatData = new Float32Array(bytes.length);
-            for (let i = 0; i < bytes.length; i++) {
-                floatData[i] = bytes[i] / 32768.0;
-            }
-
-            // Create Audio Buffer (Stereo - we split the interleaved data)
-            const frameCount = floatData.length / 2;
-            const audioBuffer = audioContext.createBuffer(2, frameCount, 48000);
-            const leftChannel = audioBuffer.getChannelData(0);
-            const rightChannel = audioBuffer.getChannelData(1);
-
-            for (let i = 0; i < frameCount; i++) {
-                leftChannel[i] = floatData[i * 2];
-                rightChannel[i] = floatData[i * 2 + 1];
-            }
-
-            const source = audioContext.createBufferSource();
-            source.buffer = audioBuffer;
-            source.connect(audioContext.destination);
-
-            // Scheduling
-            const currentTime = audioContext.currentTime;
-            if (nextStartTime < currentTime) {
-                nextStartTime = currentTime + 0.05;
-            }
-            source.start(nextStartTime);
-            nextStartTime += audioBuffer.duration;
-
-            // Visual feedback
-            updateVisuals();
+            // Visuals
+            const bars = visualizer.children;
+            for(let b of bars) b.style.height = (Math.random() * 90 + 10) + '%';
         }
 
-        function updateVisuals() {
-            const bars = visualizer.querySelectorAll('.waveform-bar');
-            bars.forEach(bar => {
-                const h = Math.random() * 80 + 10;
-                bar.style.height = `${h}%`;
-            });
-        }
-
-        async function startSession() {
+        function start() {
             const key = document.getElementById('apiKey').value;
-            if (!key) return showError("נא להזין מפתח API כדי להתחיל");
-            
-            await initAudio();
-            recordedChunks = [];
-            nextStartTime = 0;
-            
-            // Build WebSocket URL for Gemini Live API (Lyria implementation)
-            // Note: The experimental Lyria endpoint uses the same base Live API infrastructure
-            const model = "models/lyria-realtime-exp";
+            if(!key) return alert("אנא הזן מפתח API");
+
+            document.getElementById('loadingStatus').classList.remove('hidden');
+            initAudio();
+
+            // תיקון ה-URL לפי הפרוטוקול
             const url = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.MusicService/StreamMusic?key=${key}`;
+            
+            ws = new WebSocket(url);
 
-            try {
-                socket = new WebSocket(url);
-                socket.binaryType = 'blob';
+            ws.onopen = () => {
+                document.getElementById('loadingStatus').classList.add('hidden');
+                startBtn.classList.add('hidden');
+                stopBtn.classList.remove('hidden');
+                document.getElementById('playerSection').classList.remove('hidden');
 
-                socket.onopen = () => {
-                    isPlaying = true;
-                    playerSection.classList.remove('hidden');
-                    document.getElementById('btnText').innerText = "מעדכן...";
-                    
-                    // Initial Setup Message
-                    const setupMessage = {
-                        setup: {
-                            model: model,
-                            music_generation_config: {
-                                bpm: parseInt(document.getElementById('bpm').value),
-                                density: parseFloat(document.getElementById('density').value),
-                                brightness: parseFloat(document.getElementById('brightness').value),
-                                guidance: parseFloat(document.getElementById('guidance').value),
-                                scale: document.getElementById('musicScale').value,
-                                audio_format: "pcm16",
-                                sample_rate_hz: 48000
-                            }
+                // 1. Setup
+                ws.send(JSON.stringify({
+                    setup: {
+                        model: "models/lyria-realtime-exp",
+                        music_generation_config: {
+                            bpm: parseInt(document.getElementById('bpm').value),
+                            density: parseFloat(document.getElementById('density').value),
+                            brightness: parseFloat(document.getElementById('brightness').value),
+                            guidance: parseFloat(document.getElementById('guidance').value),
+                            scale: document.getElementById('musicScale').value,
+                            audio_format: "pcm16",
+                            sample_rate_hz: 48000
                         }
-                    };
-                    socket.send(JSON.stringify(setupMessage));
-
-                    // Initial Prompt
-                    sendPrompt();
-                    
-                    // Start Playing
-                    socket.send(JSON.stringify({ playback_control: { command: "PLAY" } }));
-                };
-
-                socket.onmessage = async (event) => {
-                    let response;
-                    if (event.data instanceof Blob) {
-                        const text = await event.data.text();
-                        response = JSON.parse(text);
-                    } else {
-                        response = JSON.parse(event.data);
                     }
+                }));
 
-                    if (response.serverContent?.audioChunks) {
-                        response.serverContent.audioChunks.forEach(chunk => {
-                            playPCMChunk(chunk.data);
-                        });
-                    }
-                    
-                    if (response.error) {
-                        showError(response.error.message);
-                        stopSession();
-                    }
-                };
+                // 2. Prompt
+                updatePrompt();
 
-                socket.onclose = () => {
-                    stopSession();
-                };
+                // 3. Play
+                ws.send(JSON.stringify({ playback_control: { command: "PLAY" } }));
+            };
 
-                socket.onerror = (err) => {
-                    showError("שגיאה בחיבור לשרת ג'מיני");
-                    stopSession();
-                };
+            ws.onmessage = async (e) => {
+                const data = JSON.parse(await e.data.text ? await e.data.text() : e.data);
+                if (data.serverContent?.audioChunks) {
+                    data.serverContent.audioChunks.forEach(c => playChunk(c.data));
+                }
+                if (data.error) alert("שגיאה מהשרת: " + data.error.message);
+            };
 
-            } catch (e) {
-                showError("נכשל בהתחלת הסשן: " + e.message);
+            ws.onerror = () => alert("שגיאת חיבור WebSocket. ודא שהמפתח תקין ושיש לך גישה למודל.");
+            ws.onclose = () => stop();
+        }
+
+        function updatePrompt() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    weighted_prompts: [{ text: promptInput.value || "Lofi beat", weight: 1.0 }]
+                }));
             }
         }
 
-        function sendPrompt() {
-            if (!socket || socket.readyState !== WebSocket.OPEN) return;
-            
-            const promptMsg = {
-                weighted_prompts: [
-                    { text: promptInput.value || "Ambient background music", weight: 1.0 }
-                ]
-            };
-            socket.send(JSON.stringify(promptMsg));
-            document.getElementById('btnText').innerText = "שינוי סגנון";
+        function stop() {
+            if (ws) ws.close();
+            startBtn.classList.remove('hidden');
+            stopBtn.classList.add('hidden');
+            document.getElementById('playerSection').classList.add('hidden');
+            nextTime = 0;
         }
 
-        function stopSession() {
-            if (socket) socket.close();
-            isPlaying = false;
-            document.getElementById('btnText').innerText = "הפעל מוזיקה";
-            document.getElementById('statusIndicator').className = "w-3 h-3 bg-red-500 rounded-full";
-        }
+        function download() {
+            if (pcmData.length === 0) return;
+            const totalLen = pcmData.reduce((a, b) => a + b.length, 0);
+            const wav = new ArrayBuffer(44 + totalLen * 2);
+            const view = new DataView(wav);
 
-        function downloadMusic() {
-            if (recordedChunks.length === 0) return;
-
-            // Simple WAV Encapsulation
-            const bufferLen = recordedChunks.reduce((acc, curr) => acc + curr.length, 0);
-            const wavBuffer = new ArrayBuffer(44 + bufferLen * 2);
-            const view = new DataView(wavBuffer);
-
-            // Write WAV Header
-            const writeString = (offset, string) => {
-                for (let i = 0; i < string.length; i++) {
-                    view.setUint8(offset + i, string.charCodeAt(i));
-                }
-            };
-
-            writeString(0, 'RIFF');
-            view.setUint32(4, 36 + bufferLen * 2, true);
-            writeString(8, 'WAVE');
-            writeString(12, 'fmt ');
+            const writeStr = (off, s) => { for(let i=0; i<s.length; i++) view.setUint8(off+i, s.charCodeAt(i)); };
+            writeStr(0, 'RIFF');
+            view.setUint32(4, 36 + totalLen * 2, true);
+            writeStr(8, 'WAVE');
+            writeStr(12, 'fmt ');
             view.setUint32(16, 16, true);
-            view.setUint16(20, 1, true); // PCM
-            view.setUint16(22, 2, true); // Channels
-            view.setUint32(24, 48000, true); // Sample Rate
-            view.setUint32(28, 48000 * 2 * 2, true); // Byte Rate
-            view.setUint16(32, 4, true); // Block Align
-            view.setUint16(34, 16, true); // Bits per sample
-            writeString(36, 'data');
-            view.setUint32(40, bufferLen * 2, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 2, true);
+            view.setUint32(24, 48000, true);
+            view.setUint32(28, 48000 * 4, true);
+            view.setUint16(32, 4, true);
+            view.setUint16(34, 16, true);
+            writeStr(36, 'data');
+            view.setUint32(40, totalLen * 2, true);
 
-            // Write Data
             let offset = 44;
-            recordedChunks.forEach(chunk => {
-                for (let i = 0; i < chunk.length; i++) {
-                    view.setInt16(offset, chunk[i], true);
-                    offset += 2;
-                }
+            pcmData.forEach(c => {
+                for(let i=0; i<c.length; i++) { view.setInt16(offset, c[i], true); offset += 2; }
             });
 
-            const blob = new Blob([view], { type: 'audio/wav' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `lyria-music-${Date.now()}.wav`;
-            a.click();
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob([view], {type:'audio/wav'}));
+            link.download = 'lyria_music.wav';
+            link.click();
         }
 
-        startBtn.addEventListener('click', () => {
-            if (isPlaying) {
-                sendPrompt();
-            } else {
-                startSession();
-            }
-        });
-
-        stopBtn.addEventListener('click', stopSession);
-        downloadBtn.addEventListener('click', downloadMusic);
+        startBtn.onclick = start;
+        stopBtn.onclick = stop;
+        document.getElementById('downloadBtn').onclick = download;
+        promptInput.onchange = updatePrompt;
 
     </script>
 </body>
