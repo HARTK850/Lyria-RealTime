@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gemini Trance Generator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>🎧 Gemini Trance Generator</h1>
+
+    <label>Gemini API Key:</label>
+    <input type="password" id="apiKey" placeholder="הכנס מפתח API..." />
+
+    <button id="saveKey">שמור מפתח</button>
+
+    <hr/>
+
+    <label>הפרומפט שלך:</label>
+    <textarea id="prompt" rows="12"></textarea>
+
+    <button id="loadPrompt">טען פרומפט טראנס</button>
+    <button id="generate">🚀 צור מוזיקה</button>
+
+    <div id="status"></div>
+    <audio id="player" controls style="display:none;"></audio>
+    <a id="download" style="display:none;">⬇️ הורד קובץ</a>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
