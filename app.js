@@ -49,8 +49,9 @@ document.getElementById("generate").onclick = async () => {
   statusEl.innerText = "יוצר מוזיקה... זה יכול לקחת זמן ⏳";
 
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/lyria-3:generate?key=${apiKey}`,
+const res = await fetch(
+  `https://generativelanguage.googleapis.com/v1beta/models/lyria-realtime-exp:generate?key=${apiKey}`,
+
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
